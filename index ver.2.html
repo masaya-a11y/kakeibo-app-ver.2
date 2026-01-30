@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>かんたん家計簿 with ニャンぼ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            color: #333;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .main-button {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .camera-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .camera-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .quick-btn {
+            background: #f0f0f0;
+            color: #333;
+            font-size: 16px;
+            padding: 15px;
+        }
+        
+        .quick-btn:active {
+            background: #e0e0e0;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+        
+        .payment-btn {
+            padding: 10px 6px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .payment-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .category-list {
+            margin-top: 15px;
+        }
+        
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .category-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            min-width: 100px;
+        }
+        
+        .category-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+        
+        .category-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        .category-amount {
+            font-weight: bold;
+            font-size: 14px;
+            color: #667eea;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .alert-badge {
+            background: #ff4444;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+        
+        .total-display {
+            text-align: center;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .total-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .total-amount {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-info {
+            flex: 1;
+        }
+        
+        .history-category {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        
+        .history-date {
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .history-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .history-receipt-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .modal-btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .modal-btn-save {
+            background: #667eea;
+            color: white;
+        }
+        
+        #cameraInput {
+            display: none;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .receipt-preview-container {
+            position: relative;
+            margin: 15px 0;
+        }
+        
+        .receipt-preview-small {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 10px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+        
+        .content-wrapper {
+            display: none;
+        }
+        
+        .content-wrapper.active {
+            display: block;
+        }
+        
+        /* カレンダースタイル */
+        .calendar-container {
+            margin-top: 10px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        
+        .calendar-month {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .calendar-nav-btn {
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            padding: 8px 0;
+            font-weight: bold;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            background: #f8f8f8;
+        }
+        
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+        
+        .calendar-day.today {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .calendar-day.has-expense {
+            border: 2px solid #667eea;
+        }
+        
+        .calendar-day:not(.empty):not(.today):hover {
+            background: #e0e0e0;
+        }
+        
+        .calendar-day-number {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .calendar-day-amount {
+            font-size: 9px;
+            color: #667eea;
+            margin-top: 2px;
+        }
+        
+        .calendar-day.today .calendar-day-amount {
+            color: white;
+        }
+        
+        .day-detail {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 10px;
+        }
+        
+        .day-detail-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .day-detail-total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        /* 支払い方法別統計 */
+        .payment-stats {
+            margin-top: 15px;
+        }
+        
+        .payment-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-stat-item:hover {
+            background: #e8e8e8;
+        }
+        
+        .payment-stat-info {
+            flex: 1;
+        }
+        
+        .payment-stat-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .payment-stat-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .payment-stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        .payment-stat-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-left: 15px;
+        }
+        
+        /* 目標管理スタイル */
+        .nyanbo-container {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .nyanbo-character {
+            font-size: 80px;
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .nyanbo-message {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .goal-progress {
+            margin: 20px 0;
+        }
+        
+        .goal-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .goal-bar {
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .goal-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894 0%, #00cec9 100%);
+            border-radius: 10px;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .goal-fill.warning {
+            background: linear-gradient(90deg, #fdcb6e 0%, #e17055 100%);
+        }
+        
+        .goal-fill.danger {
+            background: linear-gradient(90deg, #e17055 0%, #d63031 100%);
+        }
+        
+        .goal-status {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+        
+        .goal-days-left {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .goal-setup-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .feedback-container {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .feedback-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .feedback-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .achievement-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 かんたん家計簿</h1>
+            <p>ニャンぼと一緒に目標達成!</p>
+        </div>
+        
+        <!-- 記録タブ -->
+        <div id="recordContent" class="content-wrapper active">
+            <div class="card">
+                <div class="total-display">
+                    <div class="total-label">今月の支出</div>
+                    <div class="total-amount" id="totalAmount">¥0</div>
+                </div>
+                
+                <button class="main-button camera-btn" onclick="openCamera()">
+                    📸 レシートを撮影
+                </button>
+                
+                <button class="main-button quick-btn" onclick="openQuickInput()">
+                    ✏️ 金額だけ入力
+                </button>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 13px; color: #666; margin-bottom: 8px; display: block;">よく使う支払い方法</label>
+                    <div class="payment-methods">
+                        <button class="payment-btn active" data-method="aupay" onclick="selectPayment(this)">
+                            💳<br>au pay
+                        </button>
+                        <button class="payment-btn" data-method="cash" onclick="selectPayment(this)">
+                            💴<br>現金
+                        </button>
+                        <button class="payment-btn" data-method="credit" onclick="selectPayment(this)">
+                            💳<br>クレカ
+                        </button>
+                        <button class="payment-btn" data-method="other" onclick="selectPayment(this)">
+                            💰<br>その他
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- カレンダータブ -->
+        <div id="calendarContent" class="content-wrapper">
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">📅 カレンダー</h3>
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="calendar-nav-btn" onclick="changeMonth(-1)">◀</button>
+                        <div class="calendar-month" id="calendarMonth">2026年1月</div>
+                        <button class="calendar-nav-btn" onclick="changeMonth(1)">▶</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+                <div id="dayDetail" style="display:none;" class="day-detail">
+                    <div class="day-detail-header" id="dayDetailDate"></div>
+                    <div class="day-detail-total" id="dayDetailTotal">¥0</div>
+                    <div id="dayDetailList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 統計タブ -->
+        <div id="statsContent" class="content-wrapper">
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">📊 カテゴリー別支出</h3>
+                <div class="category-list" id="categoryList"></div>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">📝 最近の支出</h3>
+                <div id="historyList"></div>
+            </div>
+        </div>
+        
+        <!-- 支払い別タブ -->
+        <div id="paymentContent" class="content-wrapper">
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">💳 支払い方法別の支出</h3>
+                <div class="payment-stats" id="paymentStats"></div>
+            </div>
+            <div class="card" id="paymentDetailCard" style="display:none;">
+                <h3 style="margin-bottom: 15px;" id="paymentDetailTitle"></h3>
+                <div id="paymentDetailContent"></div>
+            </div>
+        </div>
+        
+        <!-- 目標タブ -->
+        <div id="goalContent" class="content-wrapper">
+            <div class="card">
+                <div class="nyanbo-container">
+                    <div class="nyanbo-character">🐱</div>
+                    <div class="nyanbo-message" id="nyanboMessage">こんにちは!ニャンぼだよ!<br>一緒に目標を立てるニャ!</div>
+                </div>
+                
+                <div id="goalSetupSection">
+                    <button class="goal-setup-btn" onclick="openGoalSetup()">🎯 目標を設定する</button>
+                </div>
+                
+                <div id="goalProgressSection" style="display:none;">
+                    <div class="goal-progress">
+                        <div class="goal-info">
+                            <span>目標: <strong id="goalTarget">¥0</strong></span>
+                            <span>現在: <strong id="goalCurrent">¥0</strong></span>
+                        </div>
+                        <div class="goal-bar">
+                            <div class="goal-fill" id="goalFill">0%</div>
+                        </div>
+                        <div class="goal-status" id="goalRemaining">¥0</div>
+                        <div class="goal-days-left" id="goalDaysLeft"></div>
+                    </div>
+                    
+                    <button class="goal-setup-btn" onclick="openGoalSetup()">⚙️ 目標を変更する</button>
+                </div>
+                
+                <div id="feedbackSection" style="display:none;" class="feedback-container">
+                    <div class="feedback-title">🐱 今週のフィードバック</div>
+                    <div class="feedback-content" id="feedbackContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ボトムナビゲーション -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchContent('record')">
+            <div class="nav-icon">📸</div>
+            記録
+        </button>
+        <button class="nav-item" onclick="switchContent('calendar')">
+            <div class="nav-icon">📅</div>
+            カレンダー
+        </button>
+        <button class="nav-item" onclick="switchContent('stats')">
+            <div class="nav-icon">📊</div>
+            統計
+        </button>
+        <button class="nav-item" onclick="switchContent('payment')">
+            <div class="nav-icon">💳</div>
+            支払別
+        </button>
+        <button class="nav-item" onclick="switchContent('goal')">
+            <div class="nav-icon">🐱</div>
+            目標
+        </button>
+    </div>
+    
+    <!-- クイック入力モーダル -->
+    <div class="modal" id="quickModal">
+        <div class="modal-content">
+            <div class="modal-title">✏️ 金額を入力</div>
+            <div class="input-group">
+                <label>金額</label>
+                <input type="number" id="quickAmount" placeholder="1000" inputmode="numeric">
+            </div>
+            <div class="input-group">
+                <label>カテゴリー</label>
+                <select id="quickCategory">
+                    <option value="食費">🍱 食費</option>
+                    <option value="日用品">🛒 日用品</option>
+                    <option value="衣服">👕 衣服</option>
+                    <option value="娯楽">🎉 娯楽</option>
+                    <option value="交通費">🚗 交通費</option>
+                    <option value="医療">💊 医療</option>
+                    <option value="公共料金">⚡ 公共料金</option>
+                    <option value="美容">💄 美容</option>
+                    <option value="その他">📦 その他</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>メモ(任意)</label>
+                <input type="text" id="quickMemo" placeholder="スーパーで買い物">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeQuickInput()">キャンセル</button>
+                <button class="modal-btn modal-btn-save" onclick="saveQuickInput()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- レシート撮影モーダル -->
+    <div class="modal" id="receiptModal">
+        <div class="modal-content">
+            <div class="modal-title">📸 レシート内容を確認</div>
+            <div class="receipt-preview-container">
+                <img id="receiptPreview" class="receipt-preview-small" style="display:none;">
+            </div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px; text-align: center;">
+                レシート画像を見ながら金額を入力してください
+            </p>
+            <div id="receiptForm">
+                <div class="input-group">
+                    <label>金額</label>
+                    <input type="number" id="receiptAmount" placeholder="1000" inputmode="numeric">
+                </div>
+                <div class="input-group">
+                    <label>カテゴリー</label>
+                    <select id="receiptCategory">
+                        <option value="食費">🍱 食費</option>
+                        <option value="日用品">🛒 日用品</option>
+                        <option value="衣服">👕 衣服</option>
+                        <option value="娯楽">🎉 娯楽</option>
+                        <option value="交通費">🚗 交通費</option>
+                        <option value="医療">💊 医療</option>
+                        <option value="公共料金">⚡ 公共料金</option>
+                        <option value="美容">💄 美容</option>
+                        <option value="その他">📦 その他</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>メモ</label>
+                    <input type="text" id="receiptMemo" placeholder="店名など">
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeReceiptModal()">キャンセル</button>
+                    <button class="modal-btn modal-btn-save" onclick="saveReceipt()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 目標設定モーダル -->
+    <div class="modal" id="goalModal">
+        <div class="modal-content">
+            <div class="modal-title">🎯 目標を設定しよう!</div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 60px;">🐱</div>
+                <p style="font-size: 14px; color: #666;">ニャンぼと一緒に目標達成するニャ!</p>
+            </div>
+            <div class="input-group">
+                <label>今月の目標支出額</label>
+                <input type="number" id="goalTargetAmount" placeholder="50000" inputmode="numeric">
+            </div>
+            <div class="input-group">
+                <label>特に気をつけたいカテゴリー</label>
+                <select id="goalFocusCategory">
+                    <option value="">選択しない</option>
+                    <option value="食費">🍱 食費</option>
+                    <option value="日用品">🛒 日用品</option>
+                    <option value="衣服">👕 衣服</option>
+                    <option value="娯楽">🎉 娯楽</option>
+                    <option value="交通費">🚗 交通費</option>
+                    <option value="医療">💊 医療</option>
+                    <option value="公共料金">⚡ 公共料金</option>
+                    <option value="美容">💄 美容</option>
+                    <option value="その他">📦 その他</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeGoalSetup()">キャンセル</button>
+                <button class="modal-btn modal-btn-save" onclick="saveGoalSetup()">決定!</button>
+            </div>
+        </div>
+    </div>
+    
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleReceipt(event)">
+    
+    <script>
+        // データストレージ
+        let expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+        let selectedPayment = 'aupay';
+        let currentReceiptImage = null;
+        let currentCalendarDate = new Date();
+        let goalSettings = JSON.parse(localStorage.getItem('goalSettings') || 'null');
+        let lastFeedbackDate = localStorage.getItem('lastFeedbackDate') || '';
+        
+        const categories = {
+            '食費': { icon: '🍱', threshold: 50000 },
+            '日用品': { icon: '🛒', threshold: 20000 },
+            '衣服': { icon: '👕', threshold: 15000 },
+            '娯楽': { icon: '🎉', threshold: 20000 },
+            '交通費': { icon: '🚗', threshold: 15000 },
+            '医療': { icon: '💊', threshold: 10000 },
+            '公共料金': { icon: '⚡', threshold: 15000 },
+            '美容': { icon: '💄', threshold: 10000 },
+            'その他': { icon: '📦', threshold: 10000 }
+        };
+        
+        const paymentMethods = {
+            'aupay': { name: 'au pay', icon: '💳' },
+            'cash': { name: '現金', icon: '💴' },
+            'credit': { name: 'クレカ', icon: '💳' },
+            'other': { name: 'その他', icon: '💰' }
+        };
+        
+        // ナビゲーション切り替え
+        function switchContent(tab) {
+            document.querySelectorAll('.content-wrapper').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const tabMap = {
+                'record': 'recordContent',
+                'calendar': 'calendarContent',
+                'stats': 'statsContent',
+                'payment': 'paymentContent',
+                'goal': 'goalContent'
+            };
+            
+            document.getElementById(tabMap[tab]).classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            
+            if (tab === 'calendar') {
+                renderCalendar();
+            } else if (tab === 'stats') {
+                updateCategories();
+                updateHistory();
+            } else if (tab === 'payment') {
+                updatePaymentStats();
+            } else if (tab === 'goal') {
+                updateGoalDisplay();
+            }
+        }
+        
+        // 支払い方法選択
+        function selectPayment(btn) {
+            document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPayment = btn.dataset.method;
+        }
+        
+        // カメラを開く
+        function openCamera() {
+            document.getElementById('cameraInput').click();
+        }
+        
+        // レシート処理
+        function handleReceipt(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const modal = document.getElementById('receiptModal');
+            const preview = document.getElementById('receiptPreview');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentReceiptImage = e.target.result;
+                preview.src = currentReceiptImage;
+                preview.style.display = 'block';
+                modal.classList.add('active');
+                document.getElementById('receiptAmount').focus();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // レシート保存
+        function saveReceipt() {
+            const amount = parseInt(document.getElementById('receiptAmount').value);
+            const category = document.getElementById('receiptCategory').value;
+            const memo = document.getElementById('receiptMemo').value;
+            
+            if (!amount || amount <= 0) {
+                alert('金額を入力してください');
+                return;
+            }
+            
+            addExpense(amount, category, memo, currentReceiptImage);
+            closeReceiptModal();
+        }
+        
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('active');
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('receiptAmount').value = '';
+            document.getElementById('receiptMemo').value = '';
+            currentReceiptImage = null;
+        }
+        
+        // クイック入力
+        function openQuickInput() {
+            document.getElementById('quickModal').classList.add('active');
+            document.getElementById('quickAmount').focus();
+        }
+        
+        function closeQuickInput() {
+            document.getElementById('quickModal').classList.remove('active');
+            document.getElementById('quickAmount').value = '';
+            document.getElementById('quickMemo').value = '';
+        }
+        
+        function saveQuickInput() {
+            const amount = parseInt(document.getElementById('quickAmount').value);
+            const category = document.getElementById('quickCategory').value;
+            const memo = document.getElementById('quickMemo').value;
+            
+            if (!amount || amount <= 0) {
+                alert('金額を入力してください');
+                return;
+            }
+            
+            addExpense(amount, category, memo, null);
+            closeQuickInput();
+        }
+        
+        // 支出追加
+        function addExpense(amount, category, memo, receiptImage) {
+            const expense = {
+                id: Date.now(),
+                amount: amount,
+                category: category,
+                memo: memo,
+                payment: selectedPayment,
+                date: new Date().toISOString(),
+                receiptImage: receiptImage
+            };
+            
+            expenses.unshift(expense);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            
+            updateDisplay();
+            checkOverspending();
+            updateGoalDisplay();
+            checkWeeklyFeedback();
+        }
+        
+        // 表示更新
+        function updateDisplay() {
+            updateTotal();
+            updateCategories();
+            updateHistory();
+        }
+        
+        function updateTotal() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthlyExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && 
+                       expenseDate.getFullYear() === currentYear;
+            });
+            
+            const total = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
+            document.getElementById('totalAmount').textContent = '¥' + total.toLocaleString();
+        }
+        
+        function updateCategories() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthlyExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && 
+                       expenseDate.getFullYear() === currentYear;
+            });
+            
+            const categoryTotals = {};
+            Object.keys(categories).forEach(cat => categoryTotals[cat] = 0);
+            
+            monthlyExpenses.forEach(e => {
+                categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+            });
+            
+            const maxAmount = Math.max(...Object.values(categoryTotals), 1);
+            
+            const categoryListHTML = Object.keys(categories).map(categoryName => {
+                const amount = categoryTotals[categoryName] || 0;
+                const percentage = (amount / maxAmount) * 100;
+                const threshold = categories[categoryName].threshold;
+                const isOver = amount > threshold;
+                
+                return `
+                    <div class="category-item">
+                        <div class="category-name">
+                            ${categories[categoryName].icon} ${categoryName}
+                            ${isOver ? '<span class="alert-badge">注意!</span>' : ''}
+                        </div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="category-amount">¥${amount.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('categoryList').innerHTML = categoryListHTML;
+        }
+        
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            if (expenses.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 0;">まだ記録がありません</p>';
+                return;
+            }
+            
+            const recentExpenses = expenses.slice(0, 20);
+            
+            historyList.innerHTML = recentExpenses.map(e => {
+                const date = new Date(e.date);
+                const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+                const paymentLabel = paymentMethods[e.payment].name;
+                const receiptImg = e.receiptImage ? `<img src="${e.receiptImage}" class="history-receipt-img" onclick="showReceiptImage('${e.receiptImage}')">` : '';
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-category">${categories[e.category].icon} ${e.category}</div>
+                            <div class="history-date">${dateStr} • ${paymentLabel}${e.memo ? ' • ' + e.memo : ''}</div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div class="history-amount">¥${e.amount.toLocaleString()}</div>
+                            ${receiptImg}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showReceiptImage(imageSrc) {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <img src="${imageSrc}" style="max-width: 100%; border-radius: 10px;">
+                    <button class="modal-btn modal-btn-cancel" style="margin-top: 15px; width: 100%;" onclick="this.closest('.modal').remove()">閉じる</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function checkOverspending() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthlyExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && 
+                       expenseDate.getFullYear() === currentYear;
+            });
+            
+            const categoryTotals = {};
+            monthlyExpenses.forEach(e => {
+                categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+            });
+            
+            Object.keys(categoryTotals).forEach(cat => {
+                const amount = categoryTotals[cat];
+                const threshold = categories[cat].threshold;
+                
+                if (amount > threshold && amount - expenses[0].amount <= threshold) {
+                    setTimeout(() => {
+                        alert(`⚠️ ${categories[cat].icon} ${cat}が目安を超えました!\n今月: ¥${amount.toLocaleString()}\n目安: ¥${threshold.toLocaleString()}`);
+                    }, 500);
+                }
+            });
+        }
+        
+        // カレンダー機能
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            document.getElementById('calendarMonth').textContent = `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            
+            const dayExpenses = {};
+            expenses.forEach(e => {
+                const expenseDate = new Date(e.date);
+                if (expenseDate.getFullYear() === year && expenseDate.getMonth() === month) {
+                    const day = expenseDate.getDate();
+                    dayExpenses[day] = (dayExpenses[day] || 0) + e.amount;
+                }
+            });
+            
+            let calendarHTML = `
+                <div class="calendar-day-header">日</div>
+                <div class="calendar-day-header">月</div>
+                <div class="calendar-day-header">火</div>
+                <div class="calendar-day-header">水</div>
+                <div class="calendar-day-header">木</div>
+                <div class="calendar-day-header">金</div>
+                <div class="calendar-day-header">土</div>
+            `;
+            
+            for (let i = 0; i < firstDay; i++) {
+                calendarHTML += '<div class="calendar-day empty"></div>';
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = today.getDate() === day && 
+                               today.getMonth() === month && 
+                               today.getFullYear() === year;
+                const hasExpense = dayExpenses[day] > 0;
+                const classes = ['calendar-day'];
+                if (isToday) classes.push('today');
+                if (hasExpense) classes.push('has-expense');
+                
+                const amountText = hasExpense ? `<div class="calendar-day-amount">¥${(dayExpenses[day] / 1000).toFixed(0)}k</div>` : '';
+                
+                calendarHTML += `
+                    <div class="${classes.join(' ')}" onclick="showDayDetail(${year}, ${month}, ${day})">
+                        <div class="calendar-day-number">${day}</div>
+                        ${amountText}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('calendarGrid').innerHTML = calendarHTML;
+        }
+        
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+        
+        function showDayDetail(year, month, day) {
+            const dayExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getFullYear() === year &&
+                       expenseDate.getMonth() === month &&
+                       expenseDate.getDate() === day;
+            });
+            
+            const total = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
+            
+            document.getElementById('dayDetailDate').textContent = `${year}年${month + 1}月${day}日`;
+            document.getElementById('dayDetailTotal').textContent = `¥${total.toLocaleString()}`;
+            
+            if (dayExpenses.length === 0) {
+                document.getElementById('dayDetailList').innerHTML = '<p style="color: #999; text-align: center; padding: 20px 0;">この日の支出はありません</p>';
+            } else {
+                document.getElementById('dayDetailList').innerHTML = dayExpenses.map(e => {
+                    const time = new Date(e.date);
+                    const timeStr = `${time.getHours()}:${String(time.getMinutes()).padStart(2, '0')}`;
+                    const paymentLabel = paymentMethods[e.payment].name;
+                    
+                    return `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-category">${categories[e.category].icon} ${e.category}</div>
+                                <div class="history-date">${timeStr} • ${paymentLabel}${e.memo ? ' • ' + e.memo : ''}</div>
+                            </div>
+                            <div class="history-amount">¥${e.amount.toLocaleString()}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('dayDetail').style.display = 'block';
+        }
+        
+        // 支払い方法別統計
+        function updatePaymentStats() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthlyExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && 
+                       expenseDate.getFullYear() === currentYear;
+            });
+            
+            const paymentTotals = {};
+            Object.keys(paymentMethods).forEach(method => paymentTotals[method] = 0);
+            
+            monthlyExpenses.forEach(e => {
+                paymentTotals[e.payment] = (paymentTotals[e.payment] || 0) + e.amount;
+            });
+            
+            const totalAmount = Object.values(paymentTotals).reduce((sum, amt) => sum + amt, 0);
+            
+            const statsHTML = Object.keys(paymentMethods).map(method => {
+                const amount = paymentTotals[method];
+                const percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+                
+                return `
+                    <div class="payment-stat-item" onclick="showPaymentDetail('${method}')">
+                        <div class="payment-stat-info">
+                            <div class="payment-stat-name">${paymentMethods[method].icon} ${paymentMethods[method].name}</div>
+                            <div class="payment-stat-bar">
+                                <div class="payment-stat-fill" style="width: ${percentage}%"></div>
+                            </div>
+                            <div style="font-size: 12px; color: #999; margin-top: 5px;">${percentage.toFixed(0)}%</div>
+                        </div>
+                        <div class="payment-stat-amount">¥${amount.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('paymentStats').innerHTML = statsHTML;
+        }
+        
+        function showPaymentDetail(method) {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const methodExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return e.payment === method &&
+                       expenseDate.getMonth() === currentMonth && 
+                       expenseDate.getFullYear() === currentYear;
+            });
+            
+            const categoryTotals = {};
+            Object.keys(categories).forEach(cat => categoryTotals[cat] = 0);
+            
+            methodExpenses.forEach(e => {
+                categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+            });
+            
+            const maxAmount = Math.max(...Object.values(categoryTotals), 1);
+            
+            const detailHTML = Object.keys(categories).filter(cat => categoryTotals[cat] > 0).map(cat => {
+                const amount = categoryTotals[cat];
+                const percentage = (amount / maxAmount) * 100;
+                
+                return `
+                    <div class="category-item">
+                        <div class="category-name">${categories[cat].icon} ${cat}</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="category-amount">¥${amount.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('paymentDetailTitle').textContent = `${paymentMethods[method].icon} ${paymentMethods[method].name}の内訳`;
+            document.getElementById('paymentDetailContent').innerHTML = detailHTML || '<p style="text-align: center; color: #999; padding: 20px 0;">まだ記録がありません</p>';
+            document.getElementById('paymentDetailCard').style.display = 'block';
+        }
+        
+        // 目標管理機能
+        function openGoalSetup() {
+            document.getElementById('goalModal').classList.add('active');
+            if (goalSettings) {
+                document.getElementById('goalTargetAmount').value = goalSettings.targetAmount;
+                document.getElementById('goalFocusCategory').value = goalSettings.focusCategory || '';
+            }
+        }
+        
+        function closeGoalSetup() {
+            document.getElementById('goalModal').classList.remove('active');
+        }
+        
+        function saveGoalSetup() {
+            const targetAmount = parseInt(document.getElementById('goalTargetAmount').value);
+            const focusCategory = document.getElementById('goalFocusCategory').value;
+            
+            if (!targetAmount || targetAmount <= 0) {
+                alert('目標金額を入力してください');
+                return;
+            }
+            
+            goalSettings = {
+                targetAmount: targetAmount,
+                focusCategory: focusCategory,
+                startDate: new Date().toISOString()
+            };
+            
+            localStorage.setItem('goalSettings', JSON.stringify(goalSettings));
+            closeGoalSetup();
+            updateGoalDisplay();
+        }
+        
+        function updateGoalDisplay() {
+            if (!goalSettings) {
+                document.getElementById('goalSetupSection').style.display = 'block';
+                document.getElementById('goalProgressSection').style.display = 'none';
+                document.getElementById('feedbackSection').style.display = 'none';
+                document.getElementById('nyanboMessage').innerHTML = 'こんにちは!ニャンぼだよ!<br>一緒に目標を立てるニャ!';
+                return;
+            }
+            
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthlyExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && 
+                       expenseDate.getFullYear() === currentYear;
+            });
+            
+            const currentAmount = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
+            const remaining = goalSettings.targetAmount - currentAmount;
+            const percentage = (currentAmount / goalSettings.targetAmount) * 100;
+            
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysLeft = daysInMonth - now.getDate();
+            
+            document.getElementById('goalTarget').textContent = '¥' + goalSettings.targetAmount.toLocaleString();
+            document.getElementById('goalCurrent').textContent = '¥' + currentAmount.toLocaleString();
+            document.getElementById('goalRemaining').textContent = remaining > 0 ? 
+                `残り ¥${remaining.toLocaleString()}` : 
+                `¥${Math.abs(remaining).toLocaleString()} オーバー`;
+            document.getElementById('goalDaysLeft').textContent = `月末まであと${daysLeft}日`;
+            
+            const goalFill = document.getElementById('goalFill');
+            goalFill.style.width = Math.min(percentage, 100) + '%';
+            goalFill.textContent = percentage.toFixed(0) + '%';
+            
+            if (percentage < 70) {
+                goalFill.className = 'goal-fill';
+            } else if (percentage < 90) {
+                goalFill.className = 'goal-fill warning';
+            } else {
+                goalFill.className = 'goal-fill danger';
+            }
+            
+            let message = '';
+            if (percentage < 50) {
+                message = '調子いいニャ!😊<br>この調子で頑張るニャ!';
+            } else if (percentage < 70) {
+                message = '順調だニャ!👍<br>でも油断しないでニャ!';
+            } else if (percentage < 90) {
+                message = 'ちょっと使いすぎかも...🤔<br>気をつけるニャ!';
+            } else if (percentage < 100) {
+                message = '目標達成が危ないニャ!😰<br>あと少し頑張るニャ!';
+            } else {
+                message = '目標オーバーだニャ...😢<br>でも大丈夫!来月頑張ろうニャ!';
+            }
+            
+            document.getElementById('nyanboMessage').innerHTML = message;
+            document.getElementById('goalSetupSection').style.display = 'none';
+            document.getElementById('goalProgressSection').style.display = 'block';
+        }
+        
+        function checkWeeklyFeedback() {
+            if (!goalSettings) return;
+            
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            // 毎週月曜日(1)にフィードバック
+            if (dayOfWeek === 1 && lastFeedbackDate !== todayStr) {
+                generateWeeklyFeedback();
+                lastFeedbackDate = todayStr;
+                localStorage.setItem('lastFeedbackDate', lastFeedbackDate);
+            }
+        }
+        
+        function generateWeeklyFeedback() {
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            const weekExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate >= weekAgo && expenseDate <= now;
+            });
+            
+            const categoryTotals = {};
+            weekExpenses.forEach(e => {
+                categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+            });
+            
+            const maxCategory = Object.keys(categoryTotals).reduce((a, b) => 
+                categoryTotals[a] > categoryTotals[b] ? a : b, Object.keys(categoryTotals)[0]);
+            
+            let feedback = `先週は合計¥${weekExpenses.reduce((s, e) => s + e.amount, 0).toLocaleString()}使ったニャ。<br><br>`;
+            
+            if (goalSettings.focusCategory && categoryTotals[goalSettings.focusCategory]) {
+                const focusAmount = categoryTotals[goalSettings.focusCategory];
+                const threshold = categories[goalSettings.focusCategory].threshold / 4;
+                
+                if (focusAmount <= threshold) {
+                    feedback += `${categories[goalSettings.focusCategory].icon} ${goalSettings.focusCategory}が目標内に収まったニャ!えらい!😊<br><br>`;
+                } else {
+                    feedback += `${categories[goalSettings.focusCategory].icon} ${goalSettings.focusCategory}が少し使いすぎかも...🤔<br>今週は気をつけてニャ!<br><br>`;
+                }
+            }
+            
+            feedback += `一番使ったのは${categories[maxCategory].icon} ${maxCategory}だニャ。<br>今週も頑張ろうニャ!💪`;
+            
+            document.getElementById('feedbackContent').innerHTML = feedback;
+            document.getElementById('feedbackSection').style.display = 'block';
+        }
+        
+        // 初期表示
+        updateDisplay();
+        updateGoalDisplay();
+        
+        // デモデータ追加（初回のみ）
+        if (expenses.length === 0) {
+            const demoExpenses = [
+                { amount: 3500, category: '食費', memo: 'スーパーで買い物', payment: 'aupay', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), receiptImage: null },
+                { amount: 1200, category: '日用品', memo: 'ドラッグストア', payment: 'cash', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), receiptImage: null },
+                { amount: 5800, category: '娯楽', memo: '映画と食事', payment: 'credit', date: new Date().toISOString(), receiptImage: null }
+            ];
+            
+            expenses = demoExpenses;
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
